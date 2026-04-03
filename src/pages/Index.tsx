@@ -33,6 +33,7 @@ const Index = () => {
                 totalFiles={store.totalFiles}
                 completedFiles={store.completedFiles}
                 processingFile={store.processingFile}
+                elapsed={store.elapsed}
                 isProcessing={store.isProcessing}
                 isPaused={store.isPaused}
                 onPause={store.pauseProcessing}
@@ -41,7 +42,7 @@ const Index = () => {
                 onStart={store.startProcessing}
               />
 
-              <FileTable
+              {/* <FileTable
                 files={store.files}
                 selectedFiles={store.selectedFiles}
                 onToggleSelect={store.toggleFileSelection}
@@ -49,13 +50,13 @@ const Index = () => {
                 onRemove={store.removeFile}
                 onRetry={store.retryFile}
                 onAddFiles={store.addFiles}
-              />
+              /> */}
 
-              <LogsPanel
+              {/* <LogsPanel
                 logs={store.logs}
                 autoscroll={store.logsAutoscroll}
                 onToggleAutoscroll={() => store.setLogsAutoscroll(!store.logsAutoscroll)}
-              />
+              /> */}
             </>
           )}
 

@@ -40,10 +40,10 @@ export function LogsPanel({ logs, autoscroll, onToggleAutoscroll }: Props) {
           <h3 className="font-semibold text-sm">Activity Log</h3>
           <span className="text-xs text-muted-foreground">({logs.length} entries)</span>
         </div>
-        <Button variant="ghost" size="sm" className="rounded-xl gap-1 text-xs h-7" onClick={onToggleAutoscroll}>
+        {/* <Button variant="ghost" size="sm" className="rounded-xl gap-1 text-xs h-7" onClick={onToggleAutoscroll}>
           {autoscroll ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
           {autoscroll ? 'Pause' : 'Resume'}
-        </Button>
+        </Button> */}
       </div>
       <ScrollArea className="flex-1 px-4 py-2">
         <div className="space-y-0.5 font-mono-logs text-xs">

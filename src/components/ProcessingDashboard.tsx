@@ -1,18 +1,26 @@
-import { Pause, Play, Square, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { motion } from 'framer-motion';
-import type { PDFFile } from '@/types';
+import { Pause, Play, Square, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
+import type { PDFFile } from "@/types";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   overallProgress: number;
   totalFiles: number;
   completedFiles: number;
-  processingFile?: PDFFile;
+  processingFile?: string;
   isProcessing: boolean;
   isPaused: boolean;
   onPause: () => void;
@@ -22,12 +30,30 @@ interface Props {
 }
 
 export function ProcessingDashboard({
-  overallProgress, totalFiles, completedFiles, processingFile,
-  isProcessing, isPaused, onPause, onResume, onCancel, onStart,
+  overallProgress,
+  totalFiles,
+  completedFiles,
+  processingFile,
+  isProcessing,
+  isPaused,
+  onPause,
+  onResume,
+  onCancel,
+  onStart,
 }: Props) {
   const remaining = totalFiles - completedFiles;
-  const elapsed = '02:34';
-  const eta = remaining > 0 ? `~${remaining * 45}s` : '—';
+  const [t, setT] = useState(0);
+  const i = useRef(null);
+
+  const start = () => {
+    clearInterval(i.current);
+    i.current = setInterval(() => setT((v) => v + 1), 1000);
+  };
+  const stop = () => clearInterval(i.current);
+  useEffect(() => {
+    if (totalFiles - completedFiles === 0) stop();
+  }, [totalFiles, completedFiles]);
+  const eta = remaining > 0 ? `~${Math.floor(remaining * Math.PI)}s` : "0s";
 
   return (
     <div className="glass rounded-2xl p-5 space-y-4">
@@ -38,35 +64,63 @@ export function ProcessingDashboard({
         </div>
         <div className="flex items-center gap-1.5">
           {isProcessing && !isPaused && (
-            <Button variant="outline" size="sm" className="rounded-xl gap-1 text-xs" onClick={onPause}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl gap-1 text-xs"
+              onClick={onPause}
+            >
               <Pause className="h-3 w-3" /> Pause
             </Button>
           )}
           {isProcessing && isPaused && (
-            <Button variant="outline" size="sm" className="rounded-xl gap-1 text-xs" onClick={onResume}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl gap-1 text-xs"
+              onClick={onResume}
+            >
               <Play className="h-3 w-3" /> Resume
             </Button>
           )}
           {!isProcessing && (
-            <Button size="sm" className="rounded-xl gap-1 text-xs" onClick={onStart}>
+            <Button
+              size="sm"
+              className="rounded-xl gap-1 text-xs"
+              onClick={() => {
+                onStart();
+                start();
+              }}
+            >
               <Play className="h-3 w-3" /> Start
             </Button>
           )}
           {isProcessing && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" className="rounded-xl gap-1 text-xs">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="rounded-xl gap-1 text-xs"
+                >
                   <Square className="h-3 w-3" /> Cancel
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="rounded-2xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Cancel Processing?</AlertDialogTitle>
-                  <AlertDialogDescription>This will stop all current processing. Queued files will remain in the queue.</AlertDialogDescription>
+                  <AlertDialogDescription>
+                    This will stop all current processing. Queued files will
+                    remain in the queue.
+                  </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel className="rounded-xl">Keep Going</AlertDialogCancel>
-                  <AlertDialogAction className="rounded-xl" onClick={onCancel}>Cancel Processing</AlertDialogAction>
+                  <AlertDialogCancel className="rounded-xl">
+                    Keep Going
+                  </AlertDialogCancel>
+                  <AlertDialogAction className="rounded-xl" onClick={onCancel}>
+                    Cancel Processing
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -91,12 +145,18 @@ export function ProcessingDashboard({
 
       <div className="grid grid-cols-4 gap-3">
         {[
-          { label: 'Elapsed', value: elapsed },
-          { label: 'ETA', value: eta },
-          { label: 'Processed', value: `${completedFiles}/${totalFiles}` },
-          { label: 'Remaining', value: String(remaining) },
-        ].map(s => (
-          <div key={s.label} className="bg-secondary/50 rounded-xl p-3 text-center">
+          {
+            label: "Elapsed",
+            value: `${String((t / 60) | 0).padStart(2, "0")}:${String((t % 60) | 0).padStart(2, "0")}`,
+          },
+          { label: "ETA", value: eta },
+          { label: "Processed", value: `${completedFiles}/${totalFiles}` },
+          { label: "Remaining", value: String(remaining) },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="bg-secondary/50 rounded-xl p-3 text-center"
+          >
             <p className="text-xs text-muted-foreground">{s.label}</p>
             <p className="font-semibold text-sm mt-0.5">{s.value}</p>
           </div>
@@ -107,8 +167,8 @@ export function ProcessingDashboard({
         <div className="flex items-center gap-2 bg-primary/10 rounded-xl px-3 py-2 text-sm">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
           <span className="text-muted-foreground">Currently processing:</span>
-          <span className="font-medium">{processingFile.name}</span>
-          <span className="ml-auto font-mono text-xs text-primary">{processingFile.progress}%</span>
+          <span className="font-medium">{processingFile}</span>
+          <span className="ml-auto font-mono text-xs text-primary">0%</span>
         </div>
       )}
     </div>
