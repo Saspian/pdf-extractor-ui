@@ -51,8 +51,8 @@ export function ProcessingDashboard({
   };
   const stop = () => clearInterval(i.current);
   useEffect(() => {
-    if (totalFiles - completedFiles === 0) stop();
-  }, [totalFiles, completedFiles]);
+    if (!isProcessing) stop();
+  }, [isProcessing]);
   const eta = remaining > 0 ? `~${Math.floor(remaining * Math.PI)}s` : "0s";
 
   return (
@@ -60,7 +60,9 @@ export function ProcessingDashboard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-accent" />
-          <h2 className="font-semibold text-sm">Processing Dashboard</h2>
+          <h2 className="font-semibold text-sm">
+            Processing Dashboard | Processing: {isProcessing ? "true" : "false"}
+          </h2>
         </div>
         <div className="flex items-center gap-1.5">
           {isProcessing && !isPaused && (
@@ -163,7 +165,7 @@ export function ProcessingDashboard({
         ))}
       </div>
 
-      {processingFile && (
+      {processingFile && isProcessing && (
         <div className="flex items-center gap-2 bg-primary/10 rounded-xl px-3 py-2 text-sm">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
           <span className="text-muted-foreground">Currently processing:</span>

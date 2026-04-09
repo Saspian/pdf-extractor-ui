@@ -15,7 +15,7 @@ const Index = () => {
       <AppHeader
         globalSearch={store.globalSearch}
         onGlobalSearchChange={store.setGlobalSearch}
-        onImportFiles={() => store.addFiles([`document-${Date.now().toString(36)}.pdf`])}
+        handleFileChange={store.addFiles}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -44,8 +44,6 @@ const Index = () => {
               <FileTable
                 files={store.files}
                 selectedFiles={store.selectedFiles}
-                onToggleSelect={store.toggleFileSelection}
-                onSelectAll={store.selectAllFiles}
                 onRemove={store.removeFile}
                 onRetry={store.retryFile}
                 onAddFiles={store.addFiles}
