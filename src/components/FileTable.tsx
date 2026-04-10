@@ -128,10 +128,7 @@ export function FileTable({
                 </TableCell>
                 <TableCell>
                   <span
-                    className={cn(
-                      "rounded-lg text-xs font-medium uppercase",
-                      "bg-yellow text-white border-yellow",
-                    )}
+                    className="text-xs font-medium uppercase text-muted-foreground"
                   >
                     {file.method }
                   </span>
