@@ -27,15 +27,6 @@ export function AppHeader({
   };
   return (
     <header className="h-14 border-b border-border/50 glass-strong flex items-center px-4 gap-3 shrink-0">
-      <div className="flex items-center gap-2 mr-4">
-        <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">P</span>
-        </div>
-        <span className="font-semibold text-lg tracking-tight">
-          PDF TextExtract
-        </span>
-      </div>
-
       <div className="flex items-center gap-1.5">
         <input
           ref={singleFileInputRef}
