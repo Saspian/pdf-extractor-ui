@@ -39,6 +39,7 @@ const Index = () => {
                 onResume={store.resumeProcessing}
                 onCancel={store.cancelProcessing}
                 onStart={store.startProcessing}
+                eventErr={store.eventErr}
               />
 
               <FileTable

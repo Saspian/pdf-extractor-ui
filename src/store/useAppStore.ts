@@ -84,7 +84,8 @@ export function useAppStore() {
   const [processingFile, setProcessingFile] = useState<string>("");
   const [inputDir, setInputDir] = useState<string>("");
   const abortControllerRef = useRef<AbortController | null>(null);
-
+  const [eventErr, setEventErr] = useState<boolean>(false);
+  console.log("This runs on every reload?");
   // const totalFiles = files.length;
   // const completedFiles = files.filter((f) => f.status === "completed").length;
   const failedFiles = files.filter((f) => f.status === "failed").length;
@@ -92,6 +93,12 @@ export function useAppStore() {
   // const overallProgress =
   //   totalFiles > 0 ? Math.round((completedFiles / totalFiles) * 100) : 0;
 
+  useEffect(() => {
+    const savedJobId = localStorage.getItem("job_id");
+    if (!savedJobId) return;
+
+    checkAndReattach(savedJobId);
+  }, []);
   const addLog = useCallback(
     (message: string, type: LogEntry["type"] = "info") => {
       setLogs((prev) => [
@@ -129,6 +136,10 @@ export function useAppStore() {
   );
 
   const addFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // setting error false here
+    // set true when event fails
+    // this stops the elappsed timer
+    setEventErr(false);
     const files = Array.from(event.target.files);
     const filePath = files[0].webkitRelativePath.split("/")[0];
     setInputDir(filePath);
@@ -145,25 +156,9 @@ export function useAppStore() {
       addedAt: new Date(),
     }));
     setFiles((prev) => [...prev, ...newFiles]);
+    setTotalFiles(pdfFiles.length);
     addLog(`Added ${pdfFiles.length} file(s) to queue`, "info");
   };
-
-  // const addFiles = useCallback(
-  //   (names: string[]) => {
-  //     const newFiles: PDFFile[] = names.map((name) => ({
-  //       id: String(Date.now() + Math.random()),
-  //       name,
-  //       size: Math.floor(Math.random() * 5000000) + 100000,
-  //       status: "queued" as const,
-  //       progress: 0,
-  //       method: "direct",
-  //       addedAt: new Date(),
-  //     }));
-  //     setFiles((prev) => [...prev, ...newFiles]);
-  //     addLog(`Added ${names.length} file(s) to queue`, "info");
-  //   },
-  //   [addLog],
-  // );
 
   const pauseProcessing = useCallback(() => {
     setIsPaused(true);
@@ -178,15 +173,30 @@ export function useAppStore() {
   const cancelProcessing = useCallback(() => {
     setIsProcessing(false);
     setIsPaused(false);
-    // setFiles((prev) =>
-    //   prev.map((f) =>
-    //     f.status === "processing"
-    //       ? { ...f, status: "queued" as const, progress: 0 }
-    //       : f,
-    //   ),
-    // );
     addLog("Processing cancelled", "error");
   }, [addLog]);
+
+  const checkAndReattach = async (jobId: string) => {
+    console.log("Hello yo call vako ho?");
+    const res = await fetch(`http://localhost:8000/extract/status/${jobId}`);
+    if (!res.ok) {
+      localStorage.removeItem("job_id"); // stale job_id, clean up
+      return;
+    }
+
+    const job = await res.json();
+
+    if (job.status === "running" || job.status === "queued") {
+      // Reattach — buffer replay handles missed events
+      streamExtraction(jobId);
+    } else if (job.status === "completed") {
+      // Restore completed UI state
+      // setOverallProgress(100)
+    } else if (job.status === "failed") {
+      // Show error state
+      console.error("Job failed:", job.error);
+    }
+  };
 
   const startExtraction = async (payload) => {
     try {
@@ -203,6 +213,7 @@ export function useAppStore() {
       }
 
       const { job_id, queue_position } = await response.json();
+      localStorage.setItem("job_id", job_id);
 
       if (queue_position > 1) {
         addLog(`Queued at position ${queue_position}`, "info");
@@ -222,7 +233,6 @@ export function useAppStore() {
 
     es.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      updateFileStatus(data.file_path, "processing", data);
 
       if (data.status === "completed") {
         addLog("Text extraction is completed", "success");
@@ -234,11 +244,12 @@ export function useAppStore() {
           updateFileStatus(data.file_path, "error", data);
         }
         addLog(`${data.message}`, "error");
+        setEventErr(true);
         es.close();
       } else if (data.status === "started") {
-        updateFileStatus(data.file_path, "processing", data);
         // Job picked up from queue, pipeline is now running
         addLog(`Processing started`, "info");
+        updateFileStatusProcessing();
       } else {
         // Processing progress event
         setOverallProgress(data.percentage ?? 0);
@@ -281,6 +292,7 @@ export function useAppStore() {
             : file, // Keep other files as they are
       ),
     );
+    addLog(`Processing completed for ${fileNameFromBackend}`, "info");
   };
 
   const updateFileStatusFailed = () => {
@@ -288,6 +300,15 @@ export function useAppStore() {
       prevFiles.map((f) => ({
         ...f,
         status: "failed",
+      })),
+    );
+  };
+
+  const updateFileStatusProcessing = () => {
+    setFiles((prevFiles) =>
+      prevFiles.map((f) => ({
+        ...f,
+        status: "processing",
       })),
     );
   };
@@ -372,6 +393,7 @@ export function useAppStore() {
     processingFile,
     overallProgress,
     searchResults,
+    eventErr,
     setCurrentView,
     removeFile,
     retryFile,
