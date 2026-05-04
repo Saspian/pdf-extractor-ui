@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   overallProgress: number;
@@ -23,7 +23,6 @@ interface Props {
   processingFile?: string;
   isProcessing: boolean;
   isPaused: boolean;
-  eventErr: boolean;
   onPause: () => void;
   onResume: () => void;
   onCancel: () => void;
@@ -37,7 +36,6 @@ export function ProcessingDashboard({
   processingFile,
   isProcessing,
   isPaused,
-  eventErr,
   onPause,
   onResume,
   onCancel,
@@ -46,9 +44,6 @@ export function ProcessingDashboard({
   const remaining = totalFiles - completedFiles;
   const [t, setT] = useState(0);
   const i = useRef(null);
-  const totalFileCount = useMemo(() => {
-    return (totalFiles - completedFiles)
-  },[totalFiles, completedFiles])
 
   const start = () => {
     clearInterval(i.current);
@@ -56,8 +51,8 @@ export function ProcessingDashboard({
   };
   const stop = () => clearInterval(i.current);
   useEffect(() => {
-    if ((totalFiles - completedFiles === 0) || eventErr) stop();
-  }, [totalFiles, completedFiles, eventErr]);
+    if (totalFiles - completedFiles === 0) stop();
+  }, [totalFiles, completedFiles]);
   const eta = remaining > 0 ? `~${Math.floor(remaining * Math.PI)}s` : "0s";
 
   return (
@@ -65,9 +60,7 @@ export function ProcessingDashboard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-accent" />
-          <h2 className="font-semibold text-sm">
-            Processing Dashboard
-          </h2>
+          <h2 className="font-semibold text-sm">Processing Dashboard</h2>
         </div>
         <div className="flex items-center gap-1.5">
           {isProcessing && !isPaused && (
@@ -98,7 +91,6 @@ export function ProcessingDashboard({
                 onStart();
                 start();
               }}
-              disabled={totalFiles === 0}
             >
               <Play className="h-3 w-3" /> Start
             </Button>
@@ -171,10 +163,10 @@ export function ProcessingDashboard({
         ))}
       </div>
 
-      {(totalFileCount != 0) && (
+      {processingFile && (
         <div className="flex items-center gap-2 bg-primary/10 rounded-xl px-3 py-2 text-sm">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
-          <span className="text-muted-foreground">{processingFile ? 'Currently processing:' : 'Ready to start the process!' } </span>
+          <span className="text-muted-foreground">Currently processing:</span>
           <span className="font-medium">{processingFile}</span>
           <span className="ml-auto font-mono text-xs text-primary">0%</span>
         </div>
