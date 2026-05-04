@@ -1,63 +1,29 @@
-import { FileUp, FolderUp, Upload, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "./ThemeToggle";
-import { useRef } from "react";
+import { FileUp, FolderUp, Upload, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ThemeToggle } from './ThemeToggle';
 
 interface AppHeaderProps {
   globalSearch: string;
   onGlobalSearchChange: (v: string) => void;
-  handleFileChange;
+  onImportFiles: () => void;
 }
 
-export function AppHeader({
-  globalSearch,
-  onGlobalSearchChange,
-  handleFileChange,
-}: AppHeaderProps) {
-  const singleFileInputRef = useRef(null);
-  const multFileInputRef = useRef(null);
-
-  const onImportFiles = (mode: string) => {
-    if (mode === "single") {
-      singleFileInputRef.current?.click();
-    } else if (mode === "multiple") {
-      multFileInputRef.current?.click();
-    }
-  };
+export function AppHeader({ globalSearch, onGlobalSearchChange, onImportFiles }: AppHeaderProps) {
   return (
     <header className="h-14 border-b border-border/50 glass-strong flex items-center px-4 gap-3 shrink-0">
+      <div className="flex items-center gap-2 mr-4">
+        <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground font-bold text-sm">P</span>
+        </div>
+        <span className="font-semibold text-lg tracking-tight">PDF TextExtract</span>
+      </div>
+
       <div className="flex items-center gap-1.5">
-        <input
-          ref={singleFileInputRef}
-          type="file"
-          accept=".pdf"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-xl gap-1.5 text-xs"
-          onClick={() => onImportFiles("single")}
-        >
+        <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs" onClick={onImportFiles}>
           <FileUp className="h-3.5 w-3.5" /> Import File
         </Button>
-        <input
-          ref={multFileInputRef}
-          type="file"
-          accept=".pdf"
-          multiple
-          webkitdirectory="true"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-xl gap-1.5 text-xs"
-          onClick={() => onImportFiles("multiple")}
-        >
+        <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs" onClick={() => onImportFiles()}>
           <FolderUp className="h-3.5 w-3.5" /> Import Folder
         </Button>
       </div>
@@ -67,7 +33,7 @@ export function AppHeader({
         <Input
           placeholder="Search extracted text..."
           value={globalSearch}
-          onChange={(e) => onGlobalSearchChange(e.target.value)}
+          onChange={e => onGlobalSearchChange(e.target.value)}
           className="pl-9 h-9 rounded-xl bg-secondary/50 border-border/50 text-sm"
         />
       </div>
